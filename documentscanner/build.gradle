@@ -8,6 +8,7 @@
  */
 
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
 apply plugin: 'com.github.dcendents.android-maven'
 group='com.github.mayuce'
 android {
@@ -45,4 +46,9 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.0'
     implementation project(':openCVLibrary')
+    implementation "androidx.core:core-ktx:+"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+}
+repositories {
+    mavenCentral()
 }
