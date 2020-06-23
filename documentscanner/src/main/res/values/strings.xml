@@ -9,4 +9,6 @@
 
 <resources>
     <string name="app_name">DocumentScanner</string>
+    <string name="no_name">No name</string>
+
 </resources>

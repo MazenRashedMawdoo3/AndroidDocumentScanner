@@ -54,7 +54,12 @@ class MainActivity : AppCompatActivity() {
 //                    Intent(MainActivity@ this, ImageCropActivity::class.java),
 //                    1234
 //                )
-                ImageCropActivity.startCropping(this, AppUtils.getMediaPath(btimap!!, this)!!)
+                ImageCropActivity.startCropping(
+                    this,
+                    AppUtils.getMediaPath(btimap!!, this)!!,
+                    R.string.app_name,
+                    R.string.app_name
+                )
             } catch (e: Exception) {
                 e.printStackTrace()
             }

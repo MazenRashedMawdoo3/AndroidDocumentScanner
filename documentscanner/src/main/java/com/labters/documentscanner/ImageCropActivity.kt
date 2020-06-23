@@ -35,6 +35,8 @@ class ImageCropActivity : DocumentScanActivity() {
     private var isInverted = false
     private lateinit var progressBar: ProgressBar
     private var cropImage: Bitmap? = null
+    private var cancelTextResId: Int? = null
+    private var doneTextResId: Int? = null
 
     private val btnImageEnhanceClick =
         View.OnClickListener {
@@ -65,11 +67,6 @@ class ImageCropActivity : DocumentScanActivity() {
 
     private val btnRebase =
         View.OnClickListener {
-//                cropImage = ScannerConstants.selectedImageBitmap.copy(
-//                        ScannerConstants.selectedImageBitmap.config,
-//                        true
-//                )
-            isInverted = false
             startCropping()
         }
 
@@ -117,17 +114,13 @@ class ImageCropActivity : DocumentScanActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_image_crop)
+        doneTextResId = intent.getIntExtra(DONE_TEXT_RES_ID, R.string.no_name)
+        cancelTextResId = intent.getIntExtra(CANCEL_TEXT_RES_ID, R.string.no_name)
+
+
         cropImage = BitmapFactory.decodeFile(intent.getStringExtra(IMAGE_PATH))
         isInverted = false
         initView()
-//        if (ScannerConstants.selectedImageBitmap != null) initView() else {
-//            Toast.makeText(
-//                this,
-//                ScannerConstants.imageError,
-//                Toast.LENGTH_LONG
-//            ).show()
-//            finish()
-//        }
     }
 
     override fun getHolderImageCrop(): FrameLayout {
@@ -194,8 +187,10 @@ class ImageCropActivity : DocumentScanActivity() {
             findViewById<ImageView>(R.id.ivInvert)
         val ivRebase =
             findViewById<ImageView>(R.id.ivRebase)
-        btnImageCrop.text = ScannerConstants.cropText
-        btnClose.text = ScannerConstants.backText
+
+        doneTextResId?.also { btnImageCrop.setText(it) }
+        cancelTextResId?.also { btnClose.setText(it) }
+
         polygonView = findViewById(R.id.polygonView)
         progressBar =
             findViewById(R.id.progressBar)
@@ -267,14 +262,24 @@ class ImageCropActivity : DocumentScanActivity() {
     companion object {
         const val CROP_IMAGE = 1523
         private const val IMAGE_PATH = "image_path"
+        private const val CANCEL_TEXT_RES_ID = "CANCEL_TEXT_RES_ID"
+        private const val DONE_TEXT_RES_ID = "DONE_TEXT_RES_ID"
         const val RESULT_IMAGE_PATH = "result_image_path"
-        fun startCropping(activity: Activity, imagePath: String) {
+
+        fun startCropping(
+            activity: Activity,
+            imagePath: String,
+            cancelTextResId: Int,
+            doneTextResId: Int
+        ) {
             activity.startActivityForResult(
                 Intent(
                     activity,
                     ImageCropActivity::class.java
                 ).apply {
                     this.putExtra(IMAGE_PATH, imagePath)
+                    this.putExtra(CANCEL_TEXT_RES_ID, cancelTextResId)
+                    this.putExtra(DONE_TEXT_RES_ID, doneTextResId)
                 },
                 CROP_IMAGE
             )
