@@ -31,7 +31,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.kotlinpermissions.KotlinPermissions
 import com.labters.documentscanner.ImageCropActivity
-import com.labters.documentscanner.helpers.ScannerConstants
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -50,28 +49,27 @@ class MainActivity : AppCompatActivity() {
             try {
                 val inputStream = selectedImage?.let { contentResolver.openInputStream(it) }
                 btimap = BitmapFactory.decodeStream(inputStream)
-                ScannerConstants.selectedImageBitmap = btimap
-                startActivityForResult(
-                    Intent(MainActivity@ this, ImageCropActivity::class.java),
-                    1234
-                )
-//                ImageCropActivity.startForResult(this, AppUtils.getMediaPath(btimap!!, this)!!)
+//                ScannerConstants.selectedImageBitmap = btimap
+//                startActivityForResult(
+//                    Intent(MainActivity@ this, ImageCropActivity::class.java),
+//                    1234
+//                )
+                ImageCropActivity.startCropping(this, AppUtils.getMediaPath(btimap!!, this)!!)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         } else if (requestCode == REQUEST_CAMERA && resultCode == Activity.RESULT_OK) {
-            ScannerConstants.selectedImageBitmap = MediaStore.Images.Media.getBitmap(
-                this.contentResolver,
-                Uri.parse(mCurrentPhotoPath)
-            )
-            startActivityForResult(Intent(MainActivity@ this, ImageCropActivity::class.java), 1234)
-        } else if (requestCode == 1234 && resultCode == Activity.RESULT_OK) {
-            if (ScannerConstants.selectedImageBitmap != null) {
-                imgBitmap.setImageBitmap(ScannerConstants.selectedImageBitmap)
+//            ScannerConstants.selectedImageBitmap = MediaStore.Images.Media.getBitmap(
+//                this.contentResolver,
+//                Uri.parse(mCurrentPhotoPath)
+//            )
+//            startActivityForResult(Intent(MainActivity@ this, ImageCropActivity::class.java), 1234)
+        } else if (requestCode == ImageCropActivity.CROP_IMAGE && resultCode == Activity.RESULT_OK) {
+            data?.getStringExtra(ImageCropActivity.RESULT_IMAGE_PATH)?.also {
+                imgBitmap.setImageBitmap(BitmapFactory.decodeFile(it))
                 imgBitmap.visibility = View.VISIBLE
                 btnPick.visibility = View.GONE
-            } else
-                Toast.makeText(MainActivity@ this, "Not OK", Toast.LENGTH_LONG).show()
+            }
         }
     }
 

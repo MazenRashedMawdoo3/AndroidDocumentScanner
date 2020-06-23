@@ -9,6 +9,7 @@
 package com.labters.documentscanner
 
 import android.app.Activity
+import android.content.Intent
 import android.graphics.*
 import android.os.Bundle
 import android.os.Environment
@@ -50,8 +51,12 @@ class ImageCropActivity : DocumentScanActivity() {
                     .subscribe { cropImage ->
                         hideProgressBar()
                         if (cropImage != null) {
-                            ScannerConstants.selectedImageBitmap = cropImage
-                            setResult(Activity.RESULT_OK)
+                            //ScannerConstants.selectedImageBitmap = cropImage
+                            val imgPath = AppUtils.getMediaPath(cropImage, this@ImageCropActivity)
+                            val intent = Intent()
+                            intent.putExtra(RESULT_IMAGE_PATH, imgPath)
+
+                            setResult(Activity.RESULT_OK, intent)
                             finish()
                         }
                     }
@@ -112,16 +117,17 @@ class ImageCropActivity : DocumentScanActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_image_crop)
-        cropImage = ScannerConstants.selectedImageBitmap
+        cropImage = BitmapFactory.decodeFile(intent.getStringExtra(IMAGE_PATH))
         isInverted = false
-        if (ScannerConstants.selectedImageBitmap != null) initView() else {
-            Toast.makeText(
-                this,
-                ScannerConstants.imageError,
-                Toast.LENGTH_LONG
-            ).show()
-            finish()
-        }
+        initView()
+//        if (ScannerConstants.selectedImageBitmap != null) initView() else {
+//            Toast.makeText(
+//                this,
+//                ScannerConstants.imageError,
+//                Toast.LENGTH_LONG
+//            ).show()
+//            finish()
+//        }
     }
 
     override fun getHolderImageCrop(): FrameLayout {
@@ -256,6 +262,24 @@ class ImageCropActivity : DocumentScanActivity() {
             }
         }
         return directory.absolutePath
+    }
+
+    companion object {
+        const val CROP_IMAGE = 1523
+        private const val IMAGE_PATH = "image_path"
+        const val RESULT_IMAGE_PATH = "result_image_path"
+        fun startCropping(activity: Activity, imagePath: String) {
+            activity.startActivityForResult(
+                Intent(
+                    activity,
+                    ImageCropActivity::class.java
+                ).apply {
+                    this.putExtra(IMAGE_PATH, imagePath)
+                },
+                CROP_IMAGE
+            )
+        }
+
     }
 
 }

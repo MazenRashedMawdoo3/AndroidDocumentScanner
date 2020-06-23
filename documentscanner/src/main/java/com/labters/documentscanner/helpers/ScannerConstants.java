@@ -9,10 +9,8 @@
 
 package com.labters.documentscanner.helpers;
 
-import android.graphics.Bitmap;
-
 public class ScannerConstants {
-    public static Bitmap selectedImageBitmap;
+   // public static Bitmap selectedImageBitmap;
     public static String cropText="KIRP",backText="KAPAT",
             imageError="Görsel seçilmedi, lütfen tekrar deneyin.",
             cropError="Geçerli bir alan seçmediniz. Lütfen çizgiler mavi olana dek düzeltme yapın.";
