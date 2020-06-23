@@ -28,25 +28,26 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class ImageCropActivity : DocumentScanActivity() {
-    private var holderImageCrop: FrameLayout? = null
-    private var imageView: ImageView? = null
-    private var polygonView: PolygonView? = null
+    private lateinit var holderImageCrop: FrameLayout
+    private lateinit var imageView: ImageView
+    private lateinit var polygonView: PolygonView
     private var isInverted = false
-    private var progressBar: ProgressBar? = null
+    private lateinit var progressBar: ProgressBar
     private var cropImage: Bitmap? = null
+
     private val btnImageEnhanceClick =
         View.OnClickListener {
             showProgressBar()
             disposable.add(
-                Observable.fromCallable {
-                    cropImage = croppedImage
-                    if (cropImage == null) return@fromCallable false
-                    if (ScannerConstants.saveStorage) saveToInternalStorage(cropImage!!)
-                    false
-                }
+                Observable.just(croppedImage)
+                    .map {
+                        val cropImage = croppedImage
+                        if (ScannerConstants.saveStorage) cropImage.also { saveToInternalStorage(it) }
+                        cropImage
+                    }
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe { result: Boolean? ->
+                    .subscribe { cropImage ->
                         hideProgressBar()
                         if (cropImage != null) {
                             ScannerConstants.selectedImageBitmap = cropImage
@@ -56,15 +57,17 @@ class ImageCropActivity : DocumentScanActivity() {
                     }
             )
         }
+
     private val btnRebase =
-        View.OnClickListener { v: View? ->
-            cropImage = ScannerConstants.selectedImageBitmap.copy(
-                ScannerConstants.selectedImageBitmap.config,
-                true
-            )
+        View.OnClickListener {
+//                cropImage = ScannerConstants.selectedImageBitmap.copy(
+//                        ScannerConstants.selectedImageBitmap.config,
+//                        true
+//                )
             isInverted = false
             startCropping()
         }
+
     private val btnCloseClick =
         View.OnClickListener { v: View? -> finish() }
     private val btnInvertColor =
@@ -77,14 +80,14 @@ class ImageCropActivity : DocumentScanActivity() {
                 }
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe { result: Boolean? ->
+                    .subscribe {
                         hideProgressBar()
                         val scaledBitmap = scaledBitmap(
                             cropImage,
-                            holderImageCrop!!.width,
-                            holderImageCrop!!.height
+                            holderImageCrop.width,
+                            holderImageCrop.height
                         )
-                        imageView!!.setImageBitmap(scaledBitmap)
+                        imageView.setImageBitmap(scaledBitmap)
                     }
             )
         }
@@ -99,7 +102,7 @@ class ImageCropActivity : DocumentScanActivity() {
                 }
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe { result: Boolean? ->
+                    .subscribe {
                         hideProgressBar()
                         startCropping()
                     }
@@ -122,29 +125,29 @@ class ImageCropActivity : DocumentScanActivity() {
     }
 
     override fun getHolderImageCrop(): FrameLayout {
-        return holderImageCrop!!
+        return holderImageCrop
     }
 
     override fun getImageView(): ImageView {
-        return imageView!!
+        return imageView
     }
 
     override fun getPolygonView(): PolygonView {
-        return polygonView!!
+        return polygonView
     }
 
     override fun showProgressBar() {
         val rlContainer =
             findViewById<RelativeLayout>(R.id.rlContainer)
         setViewInteract(rlContainer, false)
-        progressBar!!.visibility = View.VISIBLE
+        progressBar.visibility = View.VISIBLE
     }
 
     override fun hideProgressBar() {
         val rlContainer =
             findViewById<RelativeLayout>(R.id.rlContainer)
         setViewInteract(rlContainer, true)
-        progressBar!!.visibility = View.GONE
+        progressBar.visibility = View.GONE
     }
 
     override fun showError(errorType: CropperErrorType) {
@@ -157,8 +160,8 @@ class ImageCropActivity : DocumentScanActivity() {
         }
     }
 
-    override fun getBitmapImage(): Bitmap {
-        return cropImage!!
+    override fun getBitmapImage(): Bitmap? {
+        return cropImage
     }
 
     private fun setViewInteract(view: View, canDo: Boolean) {
@@ -190,11 +193,11 @@ class ImageCropActivity : DocumentScanActivity() {
         polygonView = findViewById(R.id.polygonView)
         progressBar =
             findViewById(R.id.progressBar)
-        if (progressBar?.getIndeterminateDrawable() != null && ScannerConstants.progressColor != null) progressBar?.getIndeterminateDrawable()
+        if (progressBar.indeterminateDrawable != null && ScannerConstants.progressColor != null) progressBar.indeterminateDrawable
             ?.setColorFilter(
                 Color.parseColor(ScannerConstants.progressColor),
                 PorterDuff.Mode.MULTIPLY
-            ) else if (progressBar?.getProgressDrawable() != null && ScannerConstants.progressColor != null) progressBar?.getProgressDrawable()
+            ) else if (progressBar.progressDrawable != null && ScannerConstants.progressColor != null) progressBar.progressDrawable
             ?.setColorFilter(
                 Color.parseColor(ScannerConstants.progressColor),
                 PorterDuff.Mode.MULTIPLY
@@ -211,20 +214,22 @@ class ImageCropActivity : DocumentScanActivity() {
 
     private fun invertColor() {
         if (!isInverted) {
-            val bmpMonochrome = Bitmap.createBitmap(
-                cropImage!!.width,
-                cropImage!!.height,
-                Bitmap.Config.ARGB_8888
-            )
-            val canvas = Canvas(bmpMonochrome)
-            val ma = ColorMatrix()
-            ma.setSaturation(0f)
-            val paint = Paint()
-            paint.colorFilter = ColorMatrixColorFilter(ma)
-            canvas.drawBitmap(cropImage!!, 0f, 0f, paint)
-            cropImage = bmpMonochrome.copy(bmpMonochrome.config, true)
+            cropImage?.also { cropImage ->
+                val bmpMonochrome = Bitmap.createBitmap(
+                    cropImage.width,
+                    cropImage.height,
+                    Bitmap.Config.ARGB_8888
+                )
+                val canvas = Canvas(bmpMonochrome)
+                val ma = ColorMatrix()
+                ma.setSaturation(0f)
+                val paint = Paint()
+                paint.colorFilter = ColorMatrixColorFilter(ma)
+                canvas.drawBitmap(cropImage, 0f, 0f, paint)
+                this.cropImage = bmpMonochrome.copy(bmpMonochrome.config, true)
+            }
         } else {
-            cropImage = cropImage!!.copy(cropImage!!.config, true)
+            cropImage = cropImage?.copy(cropImage?.config, true)
         }
         isInverted = !isInverted
     }
@@ -236,20 +241,21 @@ class ImageCropActivity : DocumentScanActivity() {
             SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
                 .format(Date())
         val imageFileName = "cropped_$timeStamp.png"
-        val mypath = File(directory, imageFileName)
+        val myPath = File(directory, imageFileName)
         var fos: FileOutputStream? = null
         try {
-            fos = FileOutputStream(mypath)
+            fos = FileOutputStream(myPath)
             bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fos)
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
             try {
-                fos!!.close()
+                fos?.close()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
         return directory.absolutePath
     }
+
 }

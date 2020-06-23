@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 1111 && resultCode == RESULT_OK && data != null) {
+        if (requestCode == REQUEST_GALLERY && resultCode == RESULT_OK && data != null) {
             var selectedImage = data.data
             var btimap: Bitmap? = null
             try {
@@ -55,10 +55,11 @@ class MainActivity : AppCompatActivity() {
                     Intent(MainActivity@ this, ImageCropActivity::class.java),
                     1234
                 )
+//                ImageCropActivity.startForResult(this, AppUtils.getMediaPath(btimap!!, this)!!)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-        } else if (requestCode == 1231 && resultCode == Activity.RESULT_OK) {
+        } else if (requestCode == REQUEST_CAMERA && resultCode == Activity.RESULT_OK) {
             ScannerConstants.selectedImageBitmap = MediaStore.Images.Media.getBitmap(
                 this.contentResolver,
                 Uri.parse(mCurrentPhotoPath)
@@ -82,7 +83,7 @@ class MainActivity : AppCompatActivity() {
         askPermission()
     }
 
-    fun askPermission() {
+    private fun askPermission() {
         if (
             ContextCompat.checkSelfPermission(
                 this,
@@ -132,7 +133,7 @@ class MainActivity : AppCompatActivity() {
                 dialog.dismiss()
                 val intent = Intent(Intent.ACTION_PICK)
                 intent.type = "image/*"
-                startActivityForResult(intent, 1111)
+                startActivityForResult(intent, REQUEST_GALLERY)
             }
             builder.setNegativeButton("Kamera") { dialog, which ->
                 dialog.dismiss()
@@ -148,7 +149,7 @@ class MainActivity : AppCompatActivity() {
                         val builder = StrictMode.VmPolicy.Builder()
                         StrictMode.setVmPolicy(builder.build())
                         cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile))
-                        startActivityForResult(cameraIntent, 1231)
+                        startActivityForResult(cameraIntent, REQUEST_CAMERA)
                     }
                 }
             }
@@ -178,6 +179,11 @@ class MainActivity : AppCompatActivity() {
         // Save a file: path for use with ACTION_VIEW intents
         mCurrentPhotoPath = "file:" + image.absolutePath
         return image
+    }
+
+    companion object {
+        const val REQUEST_GALLERY = 1111
+        const val REQUEST_CAMERA = 1231
     }
 
 }
